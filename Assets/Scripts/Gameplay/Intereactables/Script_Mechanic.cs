@@ -73,7 +73,7 @@ public class Script_Mechanic : MonoBehaviour, I_Interactable
             currentScrapCost *= 2;
             prompt.text = "Press E to open scrap menu [Cost: " + currentScrapCost + "]";
             Debug.Log("Open scrap menu");
-            contentUI.SetActive(true);
+            contentUI.transform.localScale = Vector3.one;
             prompt.enabled = false;
             player.GetComponent<Script_OtherControls>().ToggleCursor();
             player.GetComponent<Script_OtherControls>().ToggleInput(false);
@@ -98,7 +98,7 @@ public class Script_Mechanic : MonoBehaviour, I_Interactable
     }
 
     public void CloseMenu(){
-        contentUI.SetActive(false);
+        contentUI.transform.localScale = Vector3.zero;
     }
 
     public void DisablePrompt()

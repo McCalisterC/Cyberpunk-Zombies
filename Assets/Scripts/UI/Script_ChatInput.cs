@@ -1,4 +1,5 @@
 using Steamworks;
+using System.Linq;
 using System.Text.RegularExpressions;
 using TMPro;
 using Unity.Netcode;
@@ -7,6 +8,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class Script_ChatInput : NetworkBehaviour
 {
@@ -75,6 +77,14 @@ public class Script_ChatInput : NetworkBehaviour
             if (inputString.StartsWith("/godmode"))
             {
                 GodModeCommand(inputString);
+                return;
+            }
+
+            // NEW: Added check for the /give_mod command to integrate the new functionality.
+            // This follows the pattern of existing command checks.
+            if (inputString.StartsWith("/give_mod"))
+            {
+                GiveModCommand(inputString);
                 return;
             }
 
@@ -168,5 +178,118 @@ public class Script_ChatInput : NetworkBehaviour
 
         GameObject.FindGameObjectWithTag("Chat Text").GetComponent<TMP_Text>().text += "*GOD MODE " + godModeString + "*" + "\n";
         animator.SetTrigger("ChatRecieved");
+    }
+
+    // NEW: Method to handle the /give_mod command. This parses the input, validates the mod and rarity,
+    // finds the mod from Script_ScrapMenu, and adds/replaces it while respecting the 5-mod limit.
+    // It uses existing Script_ScrapMenu public methods and properties for integration.
+    // Errors or success messages are sent to the chat using existing logic.
+    private void GiveModCommand(string inputString)
+    {
+        // Parse the command (e.g., "/give_mod LessIsMore Rare").
+        string[] parts = inputString.Split(' ');
+        if (parts.Length < 3)
+        {
+            // Display error in chat if input is malformed.
+            UpdateChatRpc("", "*ERROR: Invalid format. Use /give_mod <modName> <modRarity>*");
+            return;
+        }
+
+        string modName = parts[1].Trim();
+        string rarityString = parts[2].Trim();
+
+        // Validate and parse rarity to I_Mods.Rarity enum (case-insensitive).
+        if (!System.Enum.TryParse<I_Mods.Rarity>(rarityString, true, out I_Mods.Rarity parsedRarity))
+        {
+            UpdateChatRpc("", $"*ERROR: Invalid rarity '{rarityString}'. Valid: Common, Rare, Epic, Legendary, Exotic.*");
+            return;
+        }
+
+        // Get Script_ScrapMenu instance using Script_Mechanic's public method.
+        Script_Mechanic mechanic = GameObject.FindAnyObjectByType<Script_Mechanic>();
+        if (mechanic == null)
+        {
+            UpdateChatRpc("", "*ERROR: Could not access mod system.*");
+            return;
+        }
+        Script_ScrapMenu scrapMenu = mechanic.GetScrapHandler();
+        if (scrapMenu == null)
+        {
+            UpdateChatRpc("", "*ERROR: Could not access mod system.*");
+            return;
+        }
+
+        // Find the mod in the available mods list that matches both name and rarity.
+        // This enforces rules: Normal mods match Common-Legendary; Exotic mods only match Exotic.
+        I_Mods foundMod = scrapMenu.GetMods().FirstOrDefault(mod => mod.modName.Replace(" ", string.Empty) == modName && mod.rarity == parsedRarity);
+        if (foundMod == null)
+        {
+            UpdateChatRpc("", $"*ERROR: Mod '{modName}' with rarity '{rarityString}' not found or invalid.*");
+            return;
+        }
+
+        // Determine color based on rarity using Script_ScrapMenu's serialized colors.
+        Color modColor = Color.black;
+        switch (parsedRarity)
+        {
+            case I_Mods.Rarity.Common:
+                modColor = scrapMenu.GetCommonColor();
+                break;
+            case I_Mods.Rarity.Rare:
+                modColor = scrapMenu.GetRareColor();
+                break;
+            case I_Mods.Rarity.Epic:
+                modColor = scrapMenu.GetEpicColor();
+                break;
+            case I_Mods.Rarity.Legendary:
+                modColor = scrapMenu.GetLegendaryColor();
+                break;
+            case I_Mods.Rarity.EXOTIC:
+                modColor = scrapMenu.GetExoticColor();
+                break;
+        }
+
+        // Get active mods and icons for modification.
+        var activeMods = scrapMenu.GetActiveMods();
+        var modIcons = scrapMenu.modIcons;
+
+        // Handle adding or replacing the mod (mirroring AddMod/ReplaceMod logic from Script_ScrapMenu).
+        if (activeMods.Count < 5)
+        {
+            // Add the mod if under limit.
+            activeMods.Add(foundMod);
+            GameObject modIcon = Object.Instantiate(scrapMenu.GetModIconContentPrefab(), scrapMenu.GetModIconContentHolder().transform);
+            modIcon.GetComponentInChildren<Outline>().gameObject.GetComponent<Image>().sprite = foundMod.modIcon;
+            modIcon.GetComponent<Image>().color = modColor;
+            modIcons.Add(modIcon);
+            foundMod.Activate();
+        }
+        else
+        {
+            // Replace the last mod if at limit.
+            int lastIndex = activeMods.Count - 1;
+            I_Mods modToRemove = activeMods[lastIndex];
+            GameObject iconToRemove = modIcons[lastIndex];
+
+            modToRemove.Deactivate();
+            activeMods.RemoveAt(lastIndex);
+            modIcons.RemoveAt(lastIndex);
+            Object.Destroy(iconToRemove);
+
+            // Now add the new mod (same as above).
+            activeMods.Add(foundMod);
+            GameObject modIcon = Object.Instantiate(scrapMenu.GetModIconContentPrefab(), scrapMenu.GetModIconContentHolder().transform);
+            modIcon.GetComponentInChildren<Outline>().gameObject.GetComponent<Image>().sprite = foundMod.modIcon;
+            modIcon.GetComponent<Image>().color = modColor;
+            modIcons.Add(modIcon);
+            foundMod.Activate();
+        }
+
+        // Play SFX, clear input, and show success message in chat (consistent with other commands).
+        mechanic.buySFX.Play();
+        GetComponent<TMP_InputField>().text = "";
+        UpdateChatRpc("", $"*ADDED MOD: {modName} ({rarityString})*");
+        animator.SetTrigger("ChatRecieved");
+        EventSystem.current.SetSelectedGameObject(null);
     }
 }

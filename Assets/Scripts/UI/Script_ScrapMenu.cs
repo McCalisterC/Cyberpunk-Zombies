@@ -11,16 +11,23 @@ public class Script_ScrapMenu : MonoBehaviour
     [SerializeField] GameObject mechanic;
     [SerializeField] GameObject contentPrefab;
     [SerializeField] GameObject modIconContentHolder;
+    public GameObject GetModIconContentHolder() { return modIconContentHolder; }
     [SerializeField] GameObject modIconContentPrefab;
+    public GameObject GetModIconContentPrefab() { return modIconContentPrefab; }
     [SerializeField] GameObject replacementContentHolder;
     [SerializeField] Script_ModReplacementMenu modReplacementMenu;
 
     [Header("Mod Colors")]
     [SerializeField] Color commonColor;
+    public Color GetCommonColor() { return commonColor; }
     [SerializeField] Color rareColor;
+    public Color GetRareColor() { return rareColor; }
     [SerializeField] Color epicColor;
+    public Color GetEpicColor() { return epicColor; }
     [SerializeField] Color legendaryColor;
+    public Color GetLegendaryColor() { return legendaryColor; }
     [SerializeField] Color exoticColor;
+    public Color GetExoticColor() { return exoticColor; }
     public bool inMenu = false;
 
     private List<I_Mods> mods = new List<I_Mods>();
@@ -261,7 +268,7 @@ public class Script_ScrapMenu : MonoBehaviour
         }
         entries.Clear();
 
-        gameObject.GetComponentInParent<Image>().gameObject.SetActive(false);
+        gameObject.GetComponentInParent<Image>().gameObject.transform.localScale = Vector3.zero;
         GameObject.FindGameObjectWithTag("LocalPlayer").GetComponent<Script_OtherControls>().ToggleCursor();
         GameObject.FindGameObjectWithTag("LocalPlayer").GetComponent<Script_OtherControls>().ToggleInput(true);
         mechanic.GetComponent<Script_Mechanic>().ReactivatePrompt();
