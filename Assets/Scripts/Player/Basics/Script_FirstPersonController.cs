@@ -13,9 +13,9 @@ namespace StarterAssets
 	{
 		[Header("Player")]
 		[Tooltip("Move speed of the character in m/s")]
-		public float MoveSpeed = 4.0f;
-		[Tooltip("Sprint speed of the character in m/s")]
-		public float SprintSpeed = 6.0f;
+		public float BaseMoveSpeed = 4.0f;
+		[Tooltip("How much sprinting scales movement speed")]
+		public float SprintScale = 1.5f;
 		[Tooltip("Rotation speed of the character")]
 		public float RotationSpeed = 1.0f;
 		[Tooltip("Acceleration and deceleration")]
@@ -64,9 +64,12 @@ namespace StarterAssets
 		private float _jumpTimeoutDelta;
 		private float _fallTimeoutDelta;
 
-	
+		// variables for upgrades
+        private float currentSpeed;
+
+
 #if ENABLE_INPUT_SYSTEM
-		private PlayerInput _playerInput;
+        private PlayerInput _playerInput;
 #endif
 		private CharacterController _controller;
 		private Input_Controller _input;
@@ -97,6 +100,7 @@ namespace StarterAssets
 
 		private void Start()
 		{
+			currentSpeed = BaseMoveSpeed;
 			_controller = GetComponent<CharacterController>();
 			_input = GetComponent<Input_Controller>();
 #if ENABLE_INPUT_SYSTEM
@@ -154,7 +158,7 @@ namespace StarterAssets
 		private void Move()
 		{
 			// set target speed based on move speed, sprint speed and if sprint is pressed
-			float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
+			float targetSpeed = _input.sprint ? currentSpeed * SprintScale : currentSpeed;
 
 			// a simplistic acceleration and deceleration designed to be easy to remove, replace, or iterate upon
 
@@ -263,6 +267,11 @@ namespace StarterAssets
 
 			// when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
+		}
+
+		public void UpgradeSpeed(float percentIncrease)
+		{
+			currentSpeed = BaseMoveSpeed * percentIncrease;
 		}
 	}
 }
