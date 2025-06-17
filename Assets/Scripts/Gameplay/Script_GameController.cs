@@ -171,6 +171,9 @@ public class Script_GameController : NetworkBehaviour
         // New: Increment kills for the player who killed the enemy
         playerCredit.GetComponent<Script_PlayerUpgrades>().IncrementKillsRpc();
 
+        // After handling death and points, trigger on-kill mods for the player
+        playerCredit.GetComponent<Script_BaseStats>().TriggerOnEnemyKill(enemyGameObject.transform.position);
+
         enemyGameObject.GetComponent<Script_BasicEnemy>().RagDollRpc();
         if (UnityEngine.Random.Range(1, 10) <= 2)
         {

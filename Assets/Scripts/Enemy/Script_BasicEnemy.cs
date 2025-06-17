@@ -20,6 +20,7 @@ public class Script_BasicEnemy : NetworkBehaviour
     public bool hasHit = false;
     private NavMeshAgent navMeshAgent;
     public bool cantTakeDamage = false;
+    public bool isStunned = false;  // New flag for stunning
     [SerializeField] Rigidbody[] rigidbodies;
     [SerializeField] GameObject floatingDamageSpawnPoint;
     [SerializeField] GameObject floatingDamagePrefab;
@@ -52,6 +53,11 @@ public class Script_BasicEnemy : NetworkBehaviour
 
     public void FixedUpdate()
     {
+        if (isStunned || cantTakeDamage || GameObject.FindGameObjectWithTag("GameController").GetComponent<Script_GameController>().GetGameOver())
+        {
+            return;  // Skip movement and looking if stunned
+        }
+
         if (!cantTakeDamage && navMeshAgent.destination != null && !GameObject.FindGameObjectWithTag("GameController").GetComponent<Script_GameController>().GetGameOver())
             gameObject.transform.LookAt(navMeshAgent.destination);
     }
@@ -97,6 +103,12 @@ public class Script_BasicEnemy : NetworkBehaviour
     }
 
     IEnumerator StartChaseCycle(){
+
+        if (isStunned)
+        {
+            yield break;  // Don't chase if stunned
+        }
+
         yield return new WaitForSeconds(0.1f);
         FindClosestPlayer();
 
@@ -174,6 +186,41 @@ public class Script_BasicEnemy : NetworkBehaviour
 
         if (IsServer)
             Destroy(gameObject, 10f);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void StunEnemyRpc(float duration, Vector3 centerPos)
+    {
+        StartCoroutine(StunCoroutine(duration));
+        StartCoroutine(MoveTowardsPosition(centerPos));
+    }
+
+    private IEnumerator StunCoroutine(float duration)
+    {
+        isStunned = true;
+        navMeshAgent.enabled = false;  // Pause navigation
+        GetComponent<Animator>().SetBool("Attack", false);  // Stop animations if needed
+        GetComponent<Animator>().SetBool("Stun", true);
+        yield return new WaitForSeconds(duration);
+        isStunned = false;
+        navMeshAgent.enabled = true;  // Resume navigation
+        GetComponent<Animator>().SetBool("Stun", false);
+        InitiateChase();  // Restart chasing after stun
+    }
+
+    private IEnumerator MoveTowardsPosition(Vector3 endPos)
+    {
+        if (transform.position == endPos)
+        {
+            yield return new WaitForEndOfFrame();
+        }
+
+        else
+        {
+            transform.position = Vector3.MoveTowards(transform.position, endPos, 3f * Time.deltaTime);
+            yield return new WaitForEndOfFrame();
+            StartCoroutine(MoveTowardsPosition(endPos));
+        }
     }
 
     [Rpc(SendTo.ClientsAndHost)]

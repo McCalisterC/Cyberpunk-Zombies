@@ -35,6 +35,8 @@ public class Script_BaseStats : NetworkBehaviour
 
     private List<ReloadMechanics> reloadMethods = new List<ReloadMechanics>();
     private List<Action> takeDamageMethods = new List<Action>();
+    // Add near the top, with other lists
+    private List<Action<Vector3>> onEnemyKillMethods = new List<Action<Vector3>>();
     public bool DeathTax = false;
 
     void Start()
@@ -268,6 +270,25 @@ public class Script_BaseStats : NetworkBehaviour
         foreach (ReloadMechanics mechanics in reloadMethods)
         {
             mechanics.method(mechanics.methodFloat);
+        }
+    }
+
+    // Add these new public methods (similar to AddReloadMethod)
+    public void AddOnEnemyKillMethod(Action<Vector3> method)
+    {
+        onEnemyKillMethods.Add(method);
+    }
+
+    public void RemoveOnEnemyKillMethod(Action<Vector3> method)
+    {
+        onEnemyKillMethods.Remove(method);
+    }
+
+    public void TriggerOnEnemyKill(Vector3 killedEnemyPosition)
+    {
+        foreach (Action<Vector3> method in onEnemyKillMethods)
+        {
+            method(killedEnemyPosition);
         }
     }
 
