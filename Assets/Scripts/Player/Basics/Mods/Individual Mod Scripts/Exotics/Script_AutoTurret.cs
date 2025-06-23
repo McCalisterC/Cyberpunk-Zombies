@@ -25,7 +25,7 @@ public class Script_AutoTurret : MonoBehaviour, I_Mods
     [SerializeField] private AudioClip shootSFX;  // Optional sound effect for shooting
 
     private GameObject activeTurret;  // Reference to the spawned turret
-    private Pistol playerPistol;  // Reference to the player's Pistol for damage/fire rate syncing
+    private Weapon playerWeapon; // Changed from Pistol to Weapon
     private Transform playerTransform;  // Reference to the player's transform for positioning
     private bool isActive = false;
     private float nextShotTime = 0f;
@@ -48,8 +48,8 @@ public class Script_AutoTurret : MonoBehaviour, I_Mods
         if (player == null) return;
 
         playerTransform = player.transform;
-        playerPistol = player.GetComponentInChildren<Pistol>();
-        if (playerPistol == null) return;
+        playerWeapon = player.GetComponentInChildren<Weapon>(); // Changed from Pistol
+        if (playerWeapon == null) return;
 
         // Spawn the turret
         activeTurret = Instantiate(turretPrefab, CalculateTurretPosition(), Quaternion.identity);
@@ -102,7 +102,7 @@ public class Script_AutoTurret : MonoBehaviour, I_Mods
     {
         while (isActive)
         {
-            if (Time.time >= nextShotTime && playerPistol != null)
+            if (Time.time >= nextShotTime && playerWeapon != null)
             {
                 // Find nearest enemy within radius
                 Collider[] colliders = Physics.OverlapSphere(activeTurret.transform.position, detectionRadius);
@@ -131,7 +131,7 @@ public class Script_AutoTurret : MonoBehaviour, I_Mods
                     // Shoot at the nearest enemy
                     ShootAtEnemy(nearestEnemy);
                     // Set cooldown based on player's fire rate
-                    nextShotTime = Time.time + (1f / playerPistol.GetComponent<Pistol>().GetCurrentFireRate());
+                    nextShotTime = Time.time + (1f / playerWeapon.GetCurrentFireRate()); // Removed unnecessary GetComponent
                 }
             }
             yield return new WaitForSeconds(0.1f);  // Check every 0.1 seconds
@@ -141,10 +141,10 @@ public class Script_AutoTurret : MonoBehaviour, I_Mods
     // Handles shooting logic (similar to Pistol.Shoot())
     private void ShootAtEnemy(Script_BasicEnemy enemy)
     {
-        if (playerPistol == null || activeTurret == null) return;
+        if (playerWeapon == null || activeTurret == null) return;
 
         // Calculate damage based on player's current damage
-        float turretDamage = playerPistol.GetCurrentNextShotDamage();
+        float turretDamage = playerWeapon.GetCurrentNextShotDamage();
         int points = 50;  // Base points, can be adjusted
 
         // Deal damage and award points

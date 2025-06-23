@@ -1,106 +1,91 @@
+// Assets/Scripts/Player/Weapons/Base Class/Pistol.cs
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class Pistol : MonoBehaviour
+public class Pistol : Weapon
 {
-    [Header("Basic Stats")]
-    [SerializeField] GameObject fpsArms;
-    [SerializeField] float headshotMultiplier;
-    public float GetHeadshotMultiplier() { return headshotMultiplier; }
-    [SerializeField] float initDamage;
-    [SerializeField] float initFireRate;
-    [SerializeField] public int clipSize
+    // Existing fields that need to be made protected or adjusted
+    private float boostedDamage = 0;
+    private float currentDamage;
+    private float currentFireRate;
+    private Camera FPCamera;
+    private float bloodshots = 0f;
+    private Input_Controller _input;
+    private bool isShooting;
+    private bool canNotShoot;
+    private int _clipSize;
+    private int _currentAmmoAmount;
+
+    public override float GetHeadshotMultiplier() { return headshotMultiplier; }
+    public override float GetCurrentDamage() { return currentDamage; }
+    public override float GetCurrentNextShotDamage() { return currentDamage + boostedDamage; }
+    public override float GetCurrentFireRate() { return currentFireRate; }
+
+    public override int clipSize
     {
-        get
-        {
-            return _clipSize;
-        }
+        get => _clipSize;
         set
         {
             _clipSize = value;
-            GameObject.FindGameObjectWithTag("UI Manager").GetComponent<Script_UIManager>().gunInfoText.text = _currentAmmoAmount + "/" + _clipSize;
+            UpdateUI();
         }
     }
 
-    int _clipSize = 6;
-
-    [SerializeField] public int currentAmmoAmount
+    public override int currentAmmoAmount
     {
-        get
-        {
-            return _currentAmmoAmount;
-        }
+        get => _currentAmmoAmount;
         set
         {
             _currentAmmoAmount = value;
-            GameObject.FindGameObjectWithTag("UI Manager").GetComponent<Script_UIManager>().gunInfoText.text = _currentAmmoAmount + "/" + _clipSize;
+            UpdateUI();
         }
     }
 
-    int _currentAmmoAmount = 6;
+    public override void SetBloodShots(float percentage) { bloodshots = percentage; }
 
-    // Animation Variables
-    public bool isReloading = false;
-    [SerializeField] private bool isShooting;
-    [SerializeField] private bool canNotShoot;
-
-    // VFX Variables
-    [Header("VFX")]
-    [SerializeField] GameObject fleshHitEffect;
-
-    // Input Variables
-    private Input_Controller _input;
-
-    // Variables for upgrades
-    private float currentDamage;
-    public float GetCurrentDamage() { return currentDamage; }
-    private float boostedDamage = 0;
-    public float GetCurrentNextShotDamage() { return currentDamage + boostedDamage; }
-    private float currentFireRate;
-    public float GetCurrentFireRate() { return currentFireRate; }
-
-    private Camera FPCamera;
-
-    // Mod methods
-    List<Action> shootMethods = new List<Action>();
-    public bool vitalTargeting = false;
-    private float bloodshots = 0f;
-    public void SetBloodShots(float percentage) { bloodshots = percentage; }
-
-    public void Awake(){
+    public void Awake()
+    {
+        _clipSize = initClipSize;
         currentAmmoAmount = clipSize;
     }
 
-    private void Start(){
+    private void Start()
+    {
         FPCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         currentDamage = initDamage;
         currentFireRate = initFireRate;
         _input = GetComponentInParent<Input_Controller>();
     }
 
-    private void FixedUpdate() {
+    private void FixedUpdate()
+    {
         ButtonReload(false);
         ButtonShoot();
     }
 
-    private void ButtonShoot(){
-        if(_input.fire){
-            if(!isShooting && !canNotShoot){
+    private void ButtonShoot()
+    {
+        if (_input.fire)
+        {
+            if (!isShooting && !canNotShoot)
+            {
                 isShooting = true;
                 Shoot();
             }
         }
-        else{
+        else
+        {
             isShooting = false;
         }
     }
 
-    public void Shoot(){
-        if(currentAmmoAmount != 0)
+    public override void Shoot()
+    {
+        if (currentAmmoAmount != 0)
         {
-            if(!isReloading && isShooting){
+            if (!isReloading && isShooting)
+            {
                 foreach (Action method in shootMethods)
                 {
                     method();
@@ -109,53 +94,63 @@ public class Pistol : MonoBehaviour
                 currentAmmoAmount--;
                 fpsArms.GetComponent<Animator>().SetTrigger("Shoot");
                 Debug.Log("Shot Gun, Current Ammo: " + currentAmmoAmount);
+
                 RaycastHit hit;
                 Vector3 direction = GetShootingDirection();
                 Physics.Raycast(FPCamera.transform.position, direction, out hit);
                 canNotShoot = true;
                 StartCoroutine("CanNotShoot");
-                if(hit.transform != null){
+
+                if (hit.transform != null)
+                {
                     Debug.Log("Hit Object: " + hit.transform.gameObject.name);
                     Script_BasicEnemy enemy = null;
 
                     float tempDamage = currentDamage + boostedDamage;
                     int points = 0;
 
-                    if(hit.transform.tag == "Enemy Head" || (hit.transform.tag == "Enemy" && vitalTargeting))
+                    if (hit.transform.tag == "Enemy Head" || (hit.transform.tag == "Enemy" && vitalTargeting))
                     {
-                        GameObject fleshHit = Instantiate(fleshHitEffect, hit.point, Quaternion.FromToRotation(this.transform.position, hit.normal), hit.transform);
+                        GameObject fleshHit = Instantiate(fleshHitEffect, hit.point,
+                            Quaternion.FromToRotation(transform.position, hit.normal), hit.transform);
                         tempDamage *= headshotMultiplier;
                         points = 100;
                         enemy = hit.transform.GetComponentInParent<Script_BasicEnemy>();
                     }
                     else if (hit.transform.tag == "Enemy")
                     {
-                        GameObject fleshHit = Instantiate(fleshHitEffect, hit.point, Quaternion.FromToRotation(this.transform.position, hit.normal), hit.transform);
+                        GameObject fleshHit = Instantiate(fleshHitEffect, hit.point,
+                            Quaternion.FromToRotation(transform.position, hit.normal), hit.transform);
                         points = 50;
                         enemy = hit.transform.GetComponentInParent<Script_BasicEnemy>();
                     }
 
-                    if(enemy != null){
+                    if (enemy != null)
+                    {
                         Debug.Log(tempDamage);
-                        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponent<Script_BaseStats>().AddHealth(tempDamage * bloodshots);
+                        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponent<Script_BaseStats>()
+                            .AddHealth(tempDamage * bloodshots);
                         enemy.TakeDamage(tempDamage, points);
                     }
                 }
 
                 boostedDamage = 0;
 
-                foreach (I_Mods_DamageBoost damageBoost in GameObject.FindGameObjectWithTag("Mechanic").GetComponentsInChildren<I_Mods_DamageBoost>())
+                foreach (I_Mods_DamageBoost damageBoost in GameObject.FindGameObjectWithTag("Mechanic")
+                    .GetComponentsInChildren<I_Mods_DamageBoost>())
                 {
                     damageBoost.currentBonus = 0;
                 }
             }
         }
-        else if(!isReloading){
+        else if (!isReloading)
+        {
             ButtonReload(true);
         }
     }
 
-    public void Reload(){
+    public override void Reload()
+    {
         Debug.Log("Gun Reloaded");
         fpsArms.GetComponent<Animator>().SetBool("Reload", false);
         currentAmmoAmount = clipSize;
@@ -163,11 +158,13 @@ public class Pistol : MonoBehaviour
         _input.reload = false;
     }
 
-    public void ButtonReload(bool autoReload){
-        if (_input.reload || autoReload ){
-            if (currentAmmoAmount < clipSize && !isReloading){
+    public void ButtonReload(bool autoReload)
+    {
+        if (_input.reload || autoReload)
+        {
+            if (currentAmmoAmount < clipSize && !isReloading)
+            {
                 isReloading = true;
-
                 fpsArms.GetComponent<Animator>().SetBool("Reload", true);
                 GetComponentInParent<Script_BaseStats>().TriggerReloadMethods();
                 _input.reload = false;
@@ -177,53 +174,47 @@ public class Pistol : MonoBehaviour
         }
     }
 
-    IEnumerator CanNotShoot(){
+    IEnumerator CanNotShoot()
+    {
         Debug.Log("Current fire rate: " + currentFireRate);
-        yield return new WaitForSeconds((float)(1.0/currentFireRate));
+        yield return new WaitForSeconds(1f / currentFireRate);
         canNotShoot = false;
     }
 
-    Vector3 GetShootingDirection(){
-        Vector3 targetPos = FPCamera.gameObject.GetComponent<Transform>().position + FPCamera.gameObject.GetComponent<Transform>().forward;
-        Vector3 direction = targetPos - FPCamera.gameObject.GetComponent<Transform>().position;
+    Vector3 GetShootingDirection()
+    {
+        Vector3 targetPos = FPCamera.transform.position + FPCamera.transform.forward;
+        Vector3 direction = targetPos - FPCamera.transform.position;
         return direction.normalized;
     }
 
-    public void Disable(){
-        this.gameObject.SetActive(false);
-    }
-
-    public void StopReload()
+    public override void UpgradeDamage(float percentIncrease)
     {
-        isReloading = false;
-    }
-
-    public void UpgradeDamage(float percentIncrease){
         currentDamage = initDamage * percentIncrease;
     }
 
-    public void BoostDamage(float amount)
+    public override void BoostDamage(float amount)
     {
         boostedDamage += amount;
     }
 
-    public void UpgradeFireRate(float percentIncrease)
+    public override void UpgradeFireRate(float percentIncrease)
     {
         currentFireRate += initFireRate * percentIncrease;
         fpsArms.GetComponent<Animator>().SetFloat("FireRate", 1 + (currentFireRate - initFireRate));
     }
 
-    public void UpgradeReloadSpeed(float percentIncrease)
+    public override void UpgradeReloadSpeed(float percentIncrease)
     {
         fpsArms.GetComponent<Script_WeaponAnimHandling>().SpeedUpReload(percentIncrease);
     }
 
-    public void AddShootMethod(Action method)
+    public override void AddShootMethod(Action method)
     {
         shootMethods.Add(method);
     }
 
-    public void RemoveShootMethod(Action method)
+    public override void RemoveShootMethod(Action method)
     {
         shootMethods.Remove(method);
     }

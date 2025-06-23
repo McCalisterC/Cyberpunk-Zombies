@@ -40,11 +40,11 @@ public class Script_BloodShots : MonoBehaviour, I_Mods
 
     public void Activate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().SetBloodShots(percentage);
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().SetBloodShots(percentage);
     }
 
     public void Deactivate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().SetBloodShots(0);
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().SetBloodShots(0);
     }
 }

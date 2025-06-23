@@ -50,17 +50,17 @@ public class Script_LessIsMore : MonoBehaviour, I_Mods, I_Mods_DamageBoost
 
     public void Activate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().AddShootMethod(method);
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().AddShootMethod(method);
     }
 
     public void Deactivate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().RemoveShootMethod(method);
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().RemoveShootMethod(method);
     }
 
     public void LessIsMore()
     {
-        Pistol weapon = GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>();
+        Weapon weapon = GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>();
 
         currentBonus = weapon.GetCurrentNextShotDamage() * percentage * (weapon.clipSize - weapon.currentAmmoAmount);
 

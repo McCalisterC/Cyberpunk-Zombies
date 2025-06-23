@@ -21,30 +21,45 @@ public class Script_ExtendedMag : MonoBehaviour, I_Mods
         switch (rarity)
         {
             case I_Mods.Rarity.Common:
-                sizeIncrease = 2;
+                modDescription = "Increases Clip Size by a small amount!";
                 break;
             case I_Mods.Rarity.Rare:
-                sizeIncrease = 4;
+                modDescription = "Increases Clip Size by a medium amount!";
                 break;
             case I_Mods.Rarity.Epic:
-                sizeIncrease = 6;
+                modDescription = "Increases Clip Size by a large amount!";
                 break;
             case I_Mods.Rarity.Legendary:
-                sizeIncrease = 8;
+                modDescription = "Increases Clip Size by a MASSIVE amount!";
                 break;
         }
 
         modName = "Extended Mag";
-        modDescription = "Increases Clip Size by " + sizeIncrease + "!";
     }
 
     public void Activate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().clipSize += sizeIncrease;
+        switch (rarity)
+        {
+            case I_Mods.Rarity.Common:
+                sizeIncrease = GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().clipSize / 3;
+                break;
+            case I_Mods.Rarity.Rare:
+                sizeIncrease = GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().clipSize / 2;
+                break;
+            case I_Mods.Rarity.Epic:
+                sizeIncrease = GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().clipSize;
+                break;
+            case I_Mods.Rarity.Legendary:
+                sizeIncrease = GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().clipSize + GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().clipSize / 3;
+                break;
+        }
+
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().clipSize += sizeIncrease;
     }
 
     public void Deactivate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().clipSize -= sizeIncrease;
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().clipSize -= sizeIncrease;
     }
 }

@@ -62,9 +62,9 @@ public class Script_SprintDamageBonus : MonoBehaviour, I_Mods, I_Mods_DamageBoos
         if (currentBonus + 1 <= maxBonus && !buffered)
         {
             StartCoroutine(SprintBonusBuffer());
-            GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().BoostDamage(-currentBonus);
+            GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().BoostDamage(-currentBonus);
             currentBonus++;
-            GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().BoostDamage(currentBonus);
+            GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().BoostDamage(currentBonus);
         }
     }
 

@@ -1,5 +1,6 @@
 using Steamworks;
 using Steamworks.Data;
+using System.Collections.Generic;
 using TMPro;
 using Unity.Cinemachine;
 using Unity.Netcode;
@@ -17,6 +18,10 @@ public class Script_UIManager : NetworkBehaviour
     [SerializeField] public TMP_Text gunInfoText;
     [SerializeField] GameObject modIconHolder;
     [SerializeField] GameObject spectatorUI;
+
+    [Header("Class Selection")]
+    [SerializeField] private TMP_Dropdown classDropdown;
+    private string selectedClass = "Pistol"; // Default to Pistol
 
     [Header("Network UI Elements")]
     [SerializeField] GameObject networkUI;
@@ -49,6 +54,13 @@ public class Script_UIManager : NetworkBehaviour
                 SwitchToLobbyUI(true);
             else
                 SwitchToLobbyUI(false);
+        }
+
+        if (classDropdown != null)
+        {
+            classDropdown.ClearOptions();
+            classDropdown.AddOptions(new List<string> { "Pistol", "Automatic Rifle" });
+            classDropdown.onValueChanged.AddListener(OnClassSelected);
         }
     }
 
@@ -83,6 +95,40 @@ public class Script_UIManager : NetworkBehaviour
         Script_SteamGameNetworkManager.instance.Disconnected();
     }
 
+    private void OnClassSelected(int index)
+    {
+        selectedClass = classDropdown.options[index].text;
+        // You may want to save this selection or broadcast it to the server
+    }
+
+    public string GetSelectedClass()
+    {
+        return selectedClass;
+    }
+
+    // You'll need to call this when spawning the player to equip the correct weapon
+    public void EquipSelectedWeapon(GameObject player)
+    {
+        // Remove any existing weapon
+        Weapon existingWeapon = player.GetComponentInChildren<Weapon>();
+        if (existingWeapon != null)
+        {
+            Destroy(existingWeapon.gameObject);
+        }
+
+        // Load and attach the selected weapon prefab
+        string weaponPrefabPath = selectedClass == "Pistol" ?
+            "Alt_Revolver_Polished_Isolated" : "Automatic Rifle";
+
+        GameObject weaponPrefab = Resources.Load<GameObject>(weaponPrefabPath);
+        if (weaponPrefab != null)
+        {
+            GameObject weaponInstance = Instantiate(weaponPrefab,
+                player.transform.Find("Player Camera/FPS_Arms/Armature/Root/R.UpperArm/R.Forearm/R.Hand/WeaponPosition"));
+            weaponInstance.GetComponent<Weapon>().SetFPSArms(player.transform.Find("Player Camera/FPS_Arms").gameObject);
+            // Set up any additional references needed
+        }
+    }
 
     public void ToggleNetworkUI(bool toggle)
     {

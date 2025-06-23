@@ -91,6 +91,8 @@ public class Script_GameController : NetworkBehaviour
         isTransitioning = false;
         round = 0;
 
+        Script_UIManager.Instance.EquipSelectedWeapon(GameObject.FindGameObjectWithTag("LocalPlayer"));
+
         StartRound();
 
         StartCoroutine(MixAudioSources(menuMusicSource, true));

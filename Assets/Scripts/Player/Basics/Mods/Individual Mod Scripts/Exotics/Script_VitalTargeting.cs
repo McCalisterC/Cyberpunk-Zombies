@@ -23,11 +23,11 @@ public class Script_VitalTargeting : MonoBehaviour, I_Mods
 
     public void Activate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().vitalTargeting = true;
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().vitalTargeting = true;
     }
 
     public void Deactivate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().vitalTargeting = false;
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().vitalTargeting = false;
     }
 }
