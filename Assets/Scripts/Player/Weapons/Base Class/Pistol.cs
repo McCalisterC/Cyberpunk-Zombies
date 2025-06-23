@@ -8,6 +8,7 @@ public class Pistol : MonoBehaviour
     [Header("Basic Stats")]
     [SerializeField] GameObject fpsArms;
     [SerializeField] float headshotMultiplier;
+    public float GetHeadshotMultiplier() { return headshotMultiplier; }
     [SerializeField] float initDamage;
     [SerializeField] float initFireRate;
     [SerializeField] public int clipSize
@@ -54,9 +55,11 @@ public class Pistol : MonoBehaviour
 
     // Variables for upgrades
     private float currentDamage;
+    public float GetCurrentDamage() { return currentDamage; }
     private float boostedDamage = 0;
     public float GetCurrentNextShotDamage() { return currentDamage + boostedDamage; }
     private float currentFireRate;
+    public float GetCurrentFireRate() { return currentFireRate; }
 
     private Camera FPCamera;
 

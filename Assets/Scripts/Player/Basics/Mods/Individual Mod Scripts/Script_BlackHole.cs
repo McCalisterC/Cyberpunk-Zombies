@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using Unity.Netcode;
 using UnityEngine;
 
 public class Script_BlackHole : MonoBehaviour, I_Mods
@@ -18,7 +16,6 @@ public class Script_BlackHole : MonoBehaviour, I_Mods
 
     // Mod-specific variables (tuned by rarity)
     private float radius;
-    private float pullForce;
     private float stunDuration;
     private float cooldownTime;
     private bool onCooldown = false;
@@ -37,28 +34,24 @@ public class Script_BlackHole : MonoBehaviour, I_Mods
         {
             case I_Mods.Rarity.Common:
                 radius = 5f;
-                pullForce = 100f;
                 stunDuration = 2f;
                 cooldownTime = 30f;
                 descriptor = "small";
                 break;
             case I_Mods.Rarity.Rare:
                 radius = 7f;
-                pullForce = 150f;
                 stunDuration = 3f;
                 cooldownTime = 25f;
                 descriptor = "medium";
                 break;
             case I_Mods.Rarity.Epic:
                 radius = 10f;
-                pullForce = 200f;
                 stunDuration = 4f;
                 cooldownTime = 20f;
                 descriptor = "large";
                 break;
             case I_Mods.Rarity.Legendary:
                 radius = 15f;
-                pullForce = 300f;
                 stunDuration = 5f;
                 cooldownTime = 15f;
                 descriptor = "massive";

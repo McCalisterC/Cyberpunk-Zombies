@@ -217,7 +217,7 @@ public class Script_BasicEnemy : NetworkBehaviour
 
         else
         {
-            transform.position = Vector3.MoveTowards(transform.position, endPos, 3f * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, endPos, 8f * Time.deltaTime);
             yield return new WaitForEndOfFrame();
             StartCoroutine(MoveTowardsPosition(endPos));
         }
