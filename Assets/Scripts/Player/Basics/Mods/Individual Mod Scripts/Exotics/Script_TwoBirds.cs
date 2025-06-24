@@ -27,19 +27,19 @@ public class Script_TwoBirds : MonoBehaviour, I_Mods
 
     public void Activate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().AddShootMethod(method);
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().AddShootMethod(method);
     }
 
     public void Deactivate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().RemoveShootMethod(method);
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().RemoveShootMethod(method);
     }
 
     public void TwoBirds()
     {
         if (UnityEngine.Random.Range(0, 2) == 0)
         {
-            GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().currentAmmoAmount++;
+            GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().currentAmmoAmount++;
         }
     }
 }

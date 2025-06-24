@@ -27,21 +27,21 @@ public class Script_QuickDraw : MonoBehaviour, I_Mods
 
     public void Activate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().AddShootMethod(method);
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().AddShootMethod(method);
     }
 
     public void Deactivate()
     {
-        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>().RemoveShootMethod(method);
+        GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>().RemoveShootMethod(method);
     }
 
     public void QuickDraw()
     {
-        Pistol pistol = GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Pistol>();
+        Weapon weapon = GameObject.FindGameObjectWithTag("LocalPlayer").GetComponentInChildren<Weapon>();
 
-        if (pistol.currentAmmoAmount == pistol.clipSize)
+        if (weapon.currentAmmoAmount == weapon.clipSize)
         {
-            pistol.BoostDamage(pistol.GetCurrentNextShotDamage() * 3);
+            weapon.BoostDamage(weapon.GetCurrentNextShotDamage() * 3);
         }
     }
 }
