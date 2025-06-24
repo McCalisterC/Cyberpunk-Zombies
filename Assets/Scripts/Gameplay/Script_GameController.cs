@@ -167,11 +167,18 @@ public class Script_GameController : NetworkBehaviour
 
         Debug.Log("Enemy has died");
 
+        // Existing logic for points and kills
         GameObject playerCredit = playerThatKilled;
         playerCredit.GetComponent<Script_PlayerUpgrades>().AddPointsRpc(pointsAdded);
-
-        // New: Increment kills for the player who killed the enemy
         playerCredit.GetComponent<Script_PlayerUpgrades>().IncrementKillsRpc();
+
+        // New: Award XP to account and class using LevelManager
+        if (LevelManager.Instance != null)
+        {
+            int xpToAward = Mathf.RoundToInt(pointsAdded * 0.5f); // Example: 50% of points as XP (adjust as needed)
+            string currentClass = Script_UIManager.Instance.GetSelectedClass(); // Get active class
+            LevelManager.Instance.AddXP(xpToAward, currentClass); // Award to account and class
+        }
 
         // After handling death and points, trigger on-kill mods for the player
         playerCredit.GetComponent<Script_BaseStats>().TriggerOnEnemyKill(enemyGameObject.transform.position);

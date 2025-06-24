@@ -20,6 +20,9 @@ public class AutomaticRifle : Weapon
     private int _currentAmmoAmount;
     private Coroutine shootingCoroutine;
 
+    // New: Optional field for unlocked skin
+    [SerializeField] private Material unlockedSkinMaterial; // Assign in Inspector for level 5 skin
+
     public override float GetHeadshotMultiplier() { return headshotMultiplier; }
     public override float GetCurrentDamage() { return currentDamage; }
     public override float GetCurrentNextShotDamage() { return currentDamage + boostedDamage; }

@@ -12,12 +12,23 @@ using UnityEngine.UI;
 
 public class Script_ChatInput : NetworkBehaviour
 {
+    public static Script_ChatInput Instance { get; private set; }
+
     public bool deselecting = false;
     private Script_UIManager uIManager;
     [SerializeField] Animator animator;
 
     private void Start()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+
         uIManager = GameObject.FindGameObjectWithTag("UI Manager").GetComponent<Script_UIManager>();
     }
     public void Selected()
@@ -191,7 +202,7 @@ public class Script_ChatInput : NetworkBehaviour
         if (parts.Length < 3)
         {
             // Display error in chat if input is malformed.
-            UpdateChatRpc("", "*ERROR: Invalid format. Use /give_mod <modName> <modRarity>*");
+            GameObject.FindGameObjectWithTag("Chat Text").GetComponent<TMP_Text>().text += "*ERROR: Invalid format. Use /give_mod <modName> <modRarity>*\n";
             return;
         }
 
@@ -201,7 +212,7 @@ public class Script_ChatInput : NetworkBehaviour
         // Validate and parse rarity to I_Mods.Rarity enum (case-insensitive).
         if (!System.Enum.TryParse<I_Mods.Rarity>(rarityString, true, out I_Mods.Rarity parsedRarity))
         {
-            UpdateChatRpc("", $"*ERROR: Invalid rarity '{rarityString}'. Valid: Common, Rare, Epic, Legendary, Exotic.*");
+            GameObject.FindGameObjectWithTag("Chat Text").GetComponent<TMP_Text>().text += $"*ERROR: Invalid rarity '{rarityString}'. Valid: Common, Rare, Epic, Legendary, Exotic.*\n";
             return;
         }
 
@@ -209,13 +220,13 @@ public class Script_ChatInput : NetworkBehaviour
         Script_Mechanic mechanic = GameObject.FindAnyObjectByType<Script_Mechanic>();
         if (mechanic == null)
         {
-            UpdateChatRpc("", "*ERROR: Could not access mod system.*");
+            GameObject.FindGameObjectWithTag("Chat Text").GetComponent<TMP_Text>().text += "*ERROR: Could not access mod system.*\n";
             return;
         }
         Script_ScrapMenu scrapMenu = mechanic.GetScrapHandler();
         if (scrapMenu == null)
         {
-            UpdateChatRpc("", "*ERROR: Could not access mod system.*");
+            GameObject.FindGameObjectWithTag("Chat Text").GetComponent<TMP_Text>().text += "*ERROR: Could not access mod system.*\n";
             return;
         }
 
@@ -224,7 +235,7 @@ public class Script_ChatInput : NetworkBehaviour
         I_Mods foundMod = scrapMenu.GetMods().FirstOrDefault(mod => mod.modName.Replace(" ", string.Empty) == modName && mod.rarity == parsedRarity);
         if (foundMod == null)
         {
-            UpdateChatRpc("", $"*ERROR: Mod '{modName}' with rarity '{rarityString}' not found or invalid.*");
+            GameObject.FindGameObjectWithTag("Chat Text").GetComponent<TMP_Text>().text += $"*ERROR: Mod '{modName}' with rarity '{rarityString}' not found or invalid.*\n";
             return;
         }
 
@@ -288,8 +299,14 @@ public class Script_ChatInput : NetworkBehaviour
         // Play SFX, clear input, and show success message in chat (consistent with other commands).
         mechanic.buySFX.Play();
         GetComponent<TMP_InputField>().text = "";
-        UpdateChatRpc("", $"*ADDED MOD: {modName} ({rarityString})*");
+        GameObject.FindGameObjectWithTag("Chat Text").GetComponent<TMP_Text>().text += $"*ADDED MOD: {modName} ({rarityString})*\n";
         animator.SetTrigger("ChatRecieved");
         EventSystem.current.SetSelectedGameObject(null);
+    }
+
+    public void SystemMessage(string message)
+    {
+        GameObject.FindGameObjectWithTag("Chat Text").GetComponent<TMP_Text>().text += $"System: {message}\n";
+        animator.SetTrigger("ChatRecieved");
     }
 }

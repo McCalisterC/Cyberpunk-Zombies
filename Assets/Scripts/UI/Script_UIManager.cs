@@ -23,6 +23,10 @@ public class Script_UIManager : NetworkBehaviour
     [SerializeField] private TMP_Dropdown classDropdown;
     private string selectedClass = "Pistol"; // Default to Pistol
 
+    [Header("Leveling UI")]
+    [SerializeField] private TMP_Text accountLevelText; // New: Assign in Inspector to display "Account Level: X"
+    [SerializeField] private TMP_Text classLevelText;    // New: Assign to display "Class Level: X"
+
     [Header("Network UI Elements")]
     [SerializeField] GameObject networkUI;
     [SerializeField] GameObject lobbyUI;
@@ -59,9 +63,24 @@ public class Script_UIManager : NetworkBehaviour
         if (classDropdown != null)
         {
             classDropdown.ClearOptions();
-            classDropdown.AddOptions(new List<string> { "Pistol", "Automatic Rifle" });
+            List<string> options = new List<string> { "Pistol" };
+
+            // New: Conditionally add Automatic Rifle based on account level
+            if (LevelManager.Instance != null && LevelManager.Instance.IsClassUnlocked("Automatic Rifle"))
+            {
+                options.Add("Automatic Rifle");
+            }
+            else
+            {
+                Debug.Log("Automatic Rifle is locked until Account Level 5.");
+            }
+
+            classDropdown.AddOptions(options);
             classDropdown.onValueChanged.AddListener(OnClassSelected);
         }
+
+        // New: Update UI with current levels
+        UpdateLevelUI();
     }
 
     public void SwitchToLobbyUI(bool host)
@@ -98,7 +117,13 @@ public class Script_UIManager : NetworkBehaviour
     private void OnClassSelected(int index)
     {
         selectedClass = classDropdown.options[index].text;
-        // You may want to save this selection or broadcast it to the server
+        // New: Ensure Automatic Rifle can't be selected if locked (fallback)
+        if (selectedClass == "Automatic Rifle" && (LevelManager.Instance == null || !LevelManager.Instance.IsClassUnlocked("Automatic Rifle")))
+        {
+            selectedClass = "Pistol";
+            classDropdown.value = 0; // Reset to Pistol
+        }
+        UpdateLevelUI(); // Refresh class level display
     }
 
     public string GetSelectedClass()
@@ -123,11 +148,46 @@ public class Script_UIManager : NetworkBehaviour
         GameObject weaponPrefab = Resources.Load<GameObject>(weaponPrefabPath);
         if (weaponPrefab != null)
         {
+            // Existing weapon instantiation
             GameObject weaponInstance = Instantiate(weaponPrefab,
                 player.transform.Find("Player Camera/FPS_Arms/Armature/Root/R.UpperArm/R.Forearm/R.Hand/WeaponPosition"));
             weaponInstance.GetComponent<Weapon>().SetFPSArms(player.transform.Find("Player Camera/FPS_Arms").gameObject);
-            // Set up any additional references needed
+
+            // New: Apply skin if class level unlock is met
+            if (LevelManager.Instance != null && LevelManager.Instance.IsClassSkinUnlocked(selectedClass))
+            {
+                Renderer[] weaponRenderer = weaponInstance.GetComponentsInChildren<Renderer>();
+                if (weaponRenderer != null)
+                {
+                    // Assumes you have a public Material 'unlockedSkinMaterial' on Pistol/AutomaticRifle or here
+                    // Example: weaponRenderer.material = unlockedSkinMaterial; // Assign a golden texture or color
+                    foreach (Renderer renderer in weaponRenderer)
+                    {
+                        renderer.material.color = UnityEngine.Color.yellow; // Simple example: Change to yellow for "unlocked" skin
+                    }
+                    Debug.Log($"{selectedClass} skin unlocked and applied!");
+                }
+            }
         }
+    }
+
+    // New: Method to update level display
+    private void UpdateLevelUI()
+    {
+        if (LevelManager.Instance != null)
+        {
+            if (accountLevelText != null)
+                accountLevelText.text = $"Account Level: {LevelManager.Instance.AccountLevel}";
+            if (classLevelText != null)
+                classLevelText.text = $"{selectedClass} Level: {GetClassLevel(selectedClass)}";
+        }
+    }
+
+    // New: Helper to get class level for UI
+    private int GetClassLevel(string className)
+    {
+        if (LevelManager.Instance == null) return 0;
+        return className == "Pistol" ? LevelManager.Instance.PistolLevel : LevelManager.Instance.AutomaticRifleLevel;
     }
 
     public void ToggleNetworkUI(bool toggle)
