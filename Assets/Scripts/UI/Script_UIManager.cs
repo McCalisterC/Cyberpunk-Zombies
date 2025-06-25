@@ -37,6 +37,10 @@ public class Script_UIManager : NetworkBehaviour
     [SerializeField] Button leaveLobbyButton;
     [SerializeField] public Button joinLobbyButton;
 
+    [Header("Currency UI")]
+    [SerializeField] private TMP_Text currencyText; // New: Assign in Inspector to display currency
+    [SerializeField] private Button shopButton; // New: Button to open weapon skin shop
+
     [SerializeField] NetworkObject playerPrefab;
 
     private Script_BaseStats currentSpectator = null;
@@ -79,7 +83,13 @@ public class Script_UIManager : NetworkBehaviour
             classDropdown.onValueChanged.AddListener(OnClassSelected);
         }
 
-        // New: Update UI with current levels
+        // New: Setup shop button
+        if (shopButton != null)
+        {
+            shopButton.onClick.AddListener(() => Script_WeaponSkinShop.Instance.OpenShop());
+        }
+
+        // New: Update UI with current levels and currency
         UpdateLevelUI();
     }
 
@@ -153,25 +163,41 @@ public class Script_UIManager : NetworkBehaviour
                 player.transform.Find("Player Camera/FPS_Arms/Armature/Root/R.UpperArm/R.Forearm/R.Hand/WeaponPosition"));
             weaponInstance.GetComponent<Weapon>().SetFPSArms(player.transform.Find("Player Camera/FPS_Arms").gameObject);
 
-            // New: Apply skin if class level unlock is met
-            if (LevelManager.Instance != null && LevelManager.Instance.IsClassSkinUnlocked(selectedClass))
+            // New: Apply equipped skin instead of level-based skin
+            if (LevelManager.Instance != null)
             {
-                Renderer[] weaponRenderer = weaponInstance.GetComponentsInChildren<Renderer>();
-                if (weaponRenderer != null)
+                string equippedSkin = LevelManager.Instance.GetEquippedSkin(selectedClass);
+                if (equippedSkin != "Default" && Script_WeaponSkinShop.Instance != null)
                 {
-                    // Assumes you have a public Material 'unlockedSkinMaterial' on Pistol/AutomaticRifle or here
-                    // Example: weaponRenderer.material = unlockedSkinMaterial; // Assign a golden texture or color
-                    foreach (Renderer renderer in weaponRenderer)
+                    Material skinMaterial = Script_WeaponSkinShop.Instance.GetSkinMaterial(equippedSkin);
+                    if (skinMaterial != null)
                     {
-                        renderer.material.color = UnityEngine.Color.yellow; // Simple example: Change to yellow for "unlocked" skin
+                        Renderer[] weaponRenderers = weaponInstance.GetComponentsInChildren<Renderer>();
+                        foreach (Renderer renderer in weaponRenderers)
+                        {
+                            renderer.material = skinMaterial;
+                        }
+                        Debug.Log($"Applied skin {equippedSkin} to {selectedClass}");
                     }
-                    Debug.Log($"{selectedClass} skin unlocked and applied!");
+                }
+                // Fallback to level-based skin if no purchased skin equipped
+                else if (LevelManager.Instance.IsClassSkinUnlocked(selectedClass))
+                {
+                    Renderer[] weaponRenderer = weaponInstance.GetComponentsInChildren<Renderer>();
+                    if (weaponRenderer != null)
+                    {
+                        foreach (Renderer renderer in weaponRenderer)
+                        {
+                            renderer.material.color = UnityEngine.Color.yellow; // Simple example: Change to yellow for "unlocked" skin
+                        }
+                        Debug.Log($"{selectedClass} level-based skin applied!");
+                    }
                 }
             }
         }
     }
 
-    // New: Method to update level display
+    // New: Method to update level and currency display
     private void UpdateLevelUI()
     {
         if (LevelManager.Instance != null)
@@ -180,6 +206,8 @@ public class Script_UIManager : NetworkBehaviour
                 accountLevelText.text = $"Account Level: {LevelManager.Instance.AccountLevel}";
             if (classLevelText != null)
                 classLevelText.text = $"{selectedClass} Level: {GetClassLevel(selectedClass)}";
+            if (currencyText != null)
+                currencyText.text = $"Coins: {LevelManager.Instance.AccountCurrency}";
         }
     }
 
@@ -210,7 +238,7 @@ public class Script_UIManager : NetworkBehaviour
         spectatorUI.SetActive(toggle);
     }
 
-    public string GetUsername() 
+    public string GetUsername()
     {
         return localPlayerName;
     }
