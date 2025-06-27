@@ -24,6 +24,25 @@ public class Script_BaseStats : NetworkBehaviour
 
     private bool godMode = false;
 
+    // Blood Shots shield system
+    private float shield = 0f;
+    public float Shield {
+        get { return shield; }
+        set {
+            shield = value;
+            Script_UIManager.Instance.shieldBar.value = shield;
+        }
+    }
+    private float maxShield = 0f;
+    public float MaxShield {
+        get { return maxShield; }
+        set {
+            maxShield = value;
+            Script_UIManager.Instance.shieldBar.maxValue = maxShield;
+        }
+    }
+    private float maxShieldPercentage = 0f;
+
     public bool GetDeathStatus() { return isDead; }
 
     // Mod Methods
@@ -53,7 +72,25 @@ public class Script_BaseStats : NetworkBehaviour
             return;
         }
 
-        health -= damage;
+        // Apply damage to shield first, then health
+        if (Shield > 0)
+        {
+            if (damage <= Shield)
+            {
+                Shield -= damage;
+                damage = 0;
+            }
+            else
+            {
+                damage -= Shield;
+                Shield = 0;
+            }
+        }
+
+        if (damage > 0)
+        {
+            health -= damage;
+        }
 
         foreach (Action action in takeDamageMethods)
         {
@@ -205,6 +242,7 @@ public class Script_BaseStats : NetworkBehaviour
     {
         maxHealth += value;
         health = maxHealth;
+        MaxShield = maxShieldPercentage * maxHealth;
         Script_UIManager.Instance.healthBar.maxValue = health;
         Script_UIManager.Instance.healthBar.value = health;
     }
@@ -300,13 +338,51 @@ public class Script_BaseStats : NetworkBehaviour
         }
         else
         {
+            // Calculate excess healing
+            float excessHealing = (value + health) - maxHealth;
             health = maxHealth;
+            
+            // Add excess to shield if Blood Shots is active
+            if (MaxShield > 0)
+            {
+                AddShield(excessHealing);
+            }
+
             StopCoroutine(Regen());
             StopCoroutine(RegenTimer());
         }
 
         if (tag == "LocalPlayer")
             Script_UIManager.Instance.healthBar.value = health;
+    }
+
+    public void SetBloodShotsShield(float maxShieldValuePercentage)
+    {
+        MaxShield = maxShieldValuePercentage * maxHealth;
+        maxShieldPercentage = maxShieldValuePercentage;
+        if (MaxShield <= 0)
+        {
+            Shield = 0; // Clear shield when mod is deactivated
+        }
+    }
+
+    public void AddShield(float value)
+    {
+        if (MaxShield > 0)
+        {
+            Shield = Mathf.Min(Shield + value, MaxShield);
+            Debug.Log("Shield added: " + value + ", Current shield: " + Shield);
+        }
+    }
+
+    public float GetCurrentShield()
+    {
+        return Shield;
+    }
+
+    public float GetMaxShield()
+    {
+        return MaxShield;
     }
 
     [Rpc(SendTo.ClientsAndHost)]

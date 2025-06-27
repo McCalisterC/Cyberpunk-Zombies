@@ -15,6 +15,7 @@ public class Script_UIManager : NetworkBehaviour
     [SerializeField] public TMP_Text pointsText;
     [SerializeField] public TMP_Text scrapText;
     [SerializeField] public Slider healthBar;
+    [SerializeField] public Slider shieldBar;
     [SerializeField] public TMP_Text gunInfoText;
     [SerializeField] GameObject modIconHolder;
     [SerializeField] GameObject spectatorUI;
