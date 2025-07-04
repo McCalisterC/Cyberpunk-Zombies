@@ -25,6 +25,9 @@ public class Pistol : Weapon
     public override float GetCurrentNextShotDamage() { return currentDamage + boostedDamage; }
     public override float GetCurrentFireRate() { return currentFireRate; }
 
+    // New: Grapple hook component
+    private GrappleHook grappleHook;
+
     public override int clipSize
     {
         get => _clipSize;
@@ -47,10 +50,25 @@ public class Pistol : Weapon
 
     public override void SetBloodShots(float percentage) { bloodshots = percentage; }
 
+
     public void Awake()
     {
         _clipSize = initClipSize;
         currentAmmoAmount = clipSize;
+        
+        // New: Setup grapple hook
+        SetupGrappleHook();
+    }
+    
+    // New: Setup grapple hook component
+    private void SetupGrappleHook()
+    {
+        // Add GrappleHook component if it doesn't exist
+        grappleHook = GetComponent<GrappleHook>();
+        if (grappleHook == null)
+        {
+            grappleHook = gameObject.AddComponent<GrappleHook>();
+        }
     }
 
     private void Start()

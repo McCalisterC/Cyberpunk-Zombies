@@ -23,6 +23,7 @@ using UnityEngine.InputSystem;
 		public bool showStats;   // New: Toggles the player stats UI
 		public bool chatbox;
 
+		public bool grapple; // New: Grapple hook input
 
 		[Space(10)]
 
@@ -89,6 +90,12 @@ using UnityEngine.InputSystem;
 		public void OnShowStats(InputValue value)
 		{
 			StatsInput(value.isPressed);
+		}
+
+		// New: Handler for Grapple input action (you'll need to add "Grapple" action in your Input Action asset mapped to Q key)
+		public void OnGrapple(InputValue value)
+		{
+			GrappleInput(value.isPressed);
 		}
 #endif
 
@@ -162,5 +169,10 @@ using UnityEngine.InputSystem;
 			}
 			else
 				GetComponent<PlayerInput>().DeactivateInput();
+		}
+
+		public void GrappleInput(bool newGrappleState)
+		{
+			grapple = newGrappleState;
 		}
 	}

@@ -308,6 +308,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4f802fc8a9e314f4a85182c605b27c47, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8702232044216658855}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4f802fc8a9e314f4a85182c605b27c47, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8489395870828244914}
   m_SourcePrefab: {fileID: 100100000, guid: 4f802fc8a9e314f4a85182c605b27c47, type: 3}
 --- !u!1 &2780537904947799374 stripped
 GameObject:
@@ -334,6 +337,28 @@ MonoBehaviour:
   isReloading: 0
   vitalTargeting: 0
   fleshHitEffect: {fileID: 7111925885623535291, guid: 5f183ac4666f5d04ab6c077c90cf8e08, type: 3}
+  unlockedSkinMaterial: {fileID: 0}
+--- !u!114 &8489395870828244914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2780537904947799374}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86663d1481540c1469fdb70a540b563b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  grappleRange: 30
+  grappleSpeed: 30
+  pullForce: 15
+  grappleableLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  cooldownTime: 5
+  grappleLine: {fileID: 0}
+  grappleHookPrefab: {fileID: 0}
 --- !u!4 &3304978925664108532 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4f802fc8a9e314f4a85182c605b27c47, type: 3}
